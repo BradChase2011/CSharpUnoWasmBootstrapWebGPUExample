@@ -39,10 +39,12 @@ namespace WebGpu
 
     public static unsafe class Interop
     {
-        [DllImport("*")]
+        private const String _DllPath = "__Native";
+
+        [DllImport(_DllPath)]
         internal static extern unsafe void emscripten_set_main_loop(delegate* unmanaged<void> f, int fps, int simulate_infinite_loop);
 
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         internal static extern unsafe void emscripten_request_animation_frame_loop(delegate* unmanaged<double, void*, /* EM_BOOL */ int> f, IntPtr userDataPtr);
 
         //
@@ -99,7 +101,7 @@ namespace WebGpu
         //         // Note that deleting a GPUTexture will also delete all GPUTextureViews that have been created from it.
         //         // Similar to free(), calling wgpu_object_destroy() on null, or an object that has already been destroyed before is safe, and no-op. (so no need to
         //         // do excess "if (wgpuObject) wgpu_object_destroy(wgpuObject);")
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_object_destroy(WGpuObjectBase wgpuObject);
         //
         //         // Deinitializes all initialized WebGPU objects.
@@ -108,7 +110,7 @@ namespace WebGpu
         //         // Acquires a canvas context from a canvas by calling canvas.getCanvasContext().
         // # ifdef __EMSCRIPTEN__
 
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuCanvasContext wgpu_canvas_get_webgpu_context([MarshalAs(UnmanagedType.LPStr)] string canvasSelector /*NOTNULL*/);
         // #elif defined (_WIN32)
         // WGpuCanvasContext wgpu_canvas_get_webgpu_context(HWND hwnd);
@@ -328,7 +330,7 @@ namespace WebGpu
         // // The callback will also be resolved in the event of an initialization failure, but the ID handle
         // // passed to the callback will then be zero.
         // // options: may be null to request an adapter without specific options.
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         /* EM_BOOL */
         public static extern int navigator_gpu_request_adapter_async(ref WGpuRequestAdapterOptions options, delegate* unmanaged<WGpuAdapter, IntPtr, void> adapterCallback, IntPtr userData);
         //         // Requests a WebGPU adapter synchronously. Requires building with -sASYNCIFY=1 linker flag to work.
@@ -336,11 +338,11 @@ namespace WebGpu
         //         WGpuAdapter navigator_gpu_request_adapter_sync(const WGpuRequestAdapterOptions* options);
         //
         //         // Like above, but tiny code size without options.
-         //[DllImport("*")]
+         //[DllImport(_DllPath)]
          //public static extern void navigator_gpu_request_adapter_async_simple(WGpuRequestAdapterCallback adapterCallback);
         //         WGpuAdapter navigator_gpu_request_adapter_sync_simple(void);
         //
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern /* WGPU_TEXTURE_FORMAT */ int navigator_gpu_get_preferred_canvas_format();
         //
         //         /*
@@ -408,7 +410,7 @@ namespace WebGpu
         //
         //         typedef void (* WGpuRequestDeviceCallback) (WGpuDevice device, void* userData);
         //
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_adapter_request_device_async(WGpuAdapter adapter, ref WGpuDeviceDescriptor descriptor /*NOTNULL*/, delegate* unmanaged<WGpuDevice, IntPtr, void> deviceCallback, IntPtr userData);
         //         // Requests a WebGPU device synchronously. Requires building with -sASYNCIFY=1 linker flag to work.
         //         WGpuDevice wgpu_adapter_request_device_sync(WGpuAdapter adapter, const WGpuDeviceDescriptor* descriptor NOTNULL);
@@ -494,51 +496,51 @@ namespace WebGpu
         // #define wgpu_device_supports_feature wgpu_adapter_or_device_supports_feature
         // #define wgpu_device_get_limits wgpu_adapter_or_device_get_limits
         //
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuQueue wgpu_device_get_queue(WGpuDevice device);
         //
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuBuffer wgpu_device_create_buffer(WGpuDevice device, ref WGpuBufferDescriptor bufferDesc /*NOTNULL */);
 
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuTexture wgpu_device_create_texture(WGpuDevice device, ref WGpuTextureDescriptor textureDesc /* NOTNULL */);
         // WGpuSampler wgpu_device_create_sampler(WGpuDevice device, const WGpuSamplerDescriptor* samplerDesc NOTNULL);
         // WGpuExternalTexture wgpu_device_import_external_texture(WGpuDevice device, const WGpuExternalTextureDescriptor* externalTextureDesc NOTNULL);
         //
         // N.b. not currently using signature WGpuBindGroupLayout wgpu_device_create_bind_group_layout(WGpuDevice device, const WGpuBindGroupLayoutDescriptor *bindGroupLayoutDesc);
         // since WGpuBindGroupLayoutDescriptor is a single element struct consisting only of a single array. (if it is expanded in the future, switch to using that signature)
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuBindGroupLayout wgpu_device_create_bind_group_layout(WGpuDevice device, WGpuBindGroupLayoutEntry* bindGroupLayoutEntries, int numEntries);
         //
         // N.b. not currently using signature WGpuPipelineLayout wgpu_device_create_pipeline_layout(WGpuDevice device, const WGpuPipelineLayoutDescriptor *pipelineLayoutDesc);
         // since WGpuPipelineLayoutDescriptor is a single element struct consisting only of a single array. (if it is expanded in the future, switch to using that signature)
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuPipelineLayout wgpu_device_create_pipeline_layout(WGpuDevice device, ref WGpuBindGroupLayout bindGroupLayouts, int numLayouts);
         //
         // N.b. not currently using signature WGpuBindGroup wgpu_device_create_bind_group(WGpuDevice device, const WGpuBindGroupDescriptor *bindGroupDesc);
         // since WGpuBindGroupDescriptor is a such a light struct. (if it is expanded in the future, switch to using that signature)
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuBindGroup wgpu_device_create_bind_group(WGpuDevice device, WGpuBindGroupLayout bindGroupLayout, WGpuBindGroupEntry* entries, int numEntries);
         //
-        [DllImport("*", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport(_DllPath, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern WGpuShaderModule wgpu_device_create_shader_module(WGpuDevice device, ref WGpuShaderModuleDescriptor shaderModuleDesc /*NOTNULL*/);
         //
         // typedef void (* WGpuCreatePipelineCallback) (WGpuDevice device, WGpuPipelineBase pipeline, void* userData);
         //
         // N.b. not currently using signature WGpuComputePipeline wgpu_device_create_compute_pipeline(WGpuDevice device, const WGpuComputePipelineDescriptor *computePipelineDesc);
         // since WGpuComputePipelineDescriptor is a such a light struct. (if it is expanded in the future, switch to using that signature)
-        [DllImport("*", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport(_DllPath, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern WGpuComputePipeline wgpu_device_create_compute_pipeline(WGpuDevice device, WGpuShaderModule computeModule, string entryPoint /*NOTNULL*/, WGpuPipelineLayout layout, WGpuPipelineConstant* constants, int numConstants);
         //         void wgpu_device_create_compute_pipeline_async(WGpuDevice device, WGpuShaderModule computeModule, const char* entryPoint NOTNULL, WGpuPipelineLayout layout, const WGpuPipelineConstant* constants, int numConstants, WGpuCreatePipelineCallback callback, void* userData);
         //
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuRenderPipeline wgpu_device_create_render_pipeline(WGpuDevice device, ref WGpuRenderPipelineDescriptor renderPipelineDesc /*NOTNULL*/);
         // void wgpu_device_create_render_pipeline_async(WGpuDevice device, const WGpuRenderPipelineDescriptor* renderPipelineDesc NOTNULL, WGpuCreatePipelineCallback callback, void* userData);
         //
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuCommandEncoder wgpu_device_create_command_encoder(WGpuDevice device, ref WGpuCommandEncoderDescriptor commandEncoderDesc);
         //         // Same as above, but without any descriptor args.
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuCommandEncoder wgpu_device_create_command_encoder_simple(WGpuDevice device);
         //
         //         WGpuRenderBundleEncoder wgpu_device_create_render_bundle_encoder(WGpuDevice device, const WGpuRenderBundleEncoderDescriptor* renderBundleEncoderDesc NOTNULL);
@@ -577,13 +579,13 @@ namespace WebGpu
         //
         // Calls buffer.getMappedRange(). Returns `startOffset`, which is used as an ID token to wgpu_buffer_read/write_mapped_range().
         // If .getMappedRange() fails, the value WGPU_BUFFER_GET_MAPPED_RANGE_FAILED (-1) will be returned.
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         /*double_int53_tL */
         public static extern double wgpu_buffer_get_mapped_range(WGpuBuffer buffer, /*double_int53_tL */ double startOffset, /*double_int53_tL */ double size /*_WGPU_DEFAULT_VALUE(WGPU_MAP_MAX_LENGTH) */);
         //         void wgpu_buffer_read_mapped_range(WGpuBuffer buffer, /*double_int53_tL */ double startOffset, /*double_int53_tL */ double subOffset, void* dst NOTNULL, /*double_int53_tL */ double size);
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_buffer_write_mapped_range(WGpuBuffer buffer, /*double_int53_tL */ double startOffset, /*double_int53_tL */ double subOffset, void* src /*NOTNULL*/, /*double_int53_tL */ double size);
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_buffer_unmap(WGpuBuffer buffer);
         //
         //         // Getters for retrieving buffer properties:
@@ -685,10 +687,10 @@ namespace WebGpu
         // // Returns true if the given handle references a valid GPUTexture.
         // /* EM_BOOL */ int wgpu_is_texture(WGpuObjectBase object);
         //         // textureViewDesc: Can be null, in which case a default view is created.
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuTextureView wgpu_texture_create_view(WGpuTexture texture, WGpuTextureViewDescriptor* textureViewDesc /*_WGPU_DEFAULT_VALUE(0) */);
         // // Same as above, but does not take any descriptor args.
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuTextureView wgpu_texture_create_view_simple(WGpuTexture texture);
         //
         //         // Getters for retrieving texture properties:
@@ -730,7 +732,7 @@ namespace WebGpu
             public WGPU_TEXTURE_FORMAT* viewFormats;
         }
         // extern const WGpuTextureDescriptor WGPU_TEXTURE_DESCRIPTOR_DEFAULT_INITIALIZER;
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuTextureDescriptor GetWGPU_TEXTURE_DESCRIPTOR_DEFAULT_INITIALIZER();
         //
         //         /*
@@ -1619,7 +1621,7 @@ namespace WebGpu
         // Returns the bind group layout at the given index of the pipeline. Important: this function allocates a
         // new WebGPU object, so in order not to leak WebGPU handles, call wgpu_object_destroy() on the returned value
         // when done with it.
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuBindGroupLayout wgpu_pipeline_get_bind_group_layout(WGpuObjectBase pipelineBase, int index);
         // #define wgpu_render_pipeline_get_bind_group_layout wgpu_pipeline_get_bind_group_layout
         // #define wgpu_compute_pipeline_get_bind_group_layout wgpu_pipeline_get_bind_group_layout
@@ -2199,11 +2201,11 @@ namespace WebGpu
         // // Returns true if the given handle references a valid GPUCommandEncoder.
         // /* EM_BOOL */ int wgpu_is_command_encoder(WGpuObjectBase object);
         //
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuRenderPassEncoder wgpu_command_encoder_begin_render_pass(WGpuCommandEncoder commandEncoder, ref WGpuRenderPassDescriptor renderPassDesc);
         // // Like above, but tiny code size path for the case when there is exactly one color and zero depth-stencil targets and no occlusion query set specified for the render pass.
         // WGpuRenderPassEncoder wgpu_command_encoder_begin_render_pass_1color_0depth(WGpuCommandEncoder commandEncoder, const WGpuRenderPassDescriptor* renderPassDesc NOTNULL);
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuComputePassEncoder wgpu_command_encoder_begin_compute_pass(WGpuCommandEncoder commandEncoder, WGpuComputePassDescriptor* computePassDesc /*_WGPU_DEFAULT_VALUE(0)*/);
         // void wgpu_command_encoder_copy_buffer_to_buffer(WGpuCommandEncoder commandEncoder, WGpuBuffer source, /*double_int53_tL */ double sourceOffset, WGpuBuffer destination, /*double_int53_tL */ double destinationOffset, /*double_int53_tL */ double size);
         //         void wgpu_command_encoder_copy_buffer_to_texture(WGpuCommandEncoder commandEncoder, const WGpuImageCopyBuffer* source NOTNULL, const WGpuImageCopyTexture* destination NOTNULL, int copyWidth, int copyHeight _WGPU_DEFAULT_VALUE(1), int copyDepthOrArrayLayers _WGPU_DEFAULT_VALUE(1));
@@ -2214,10 +2216,10 @@ namespace WebGpu
         //         void wgpu_command_encoder_resolve_query_set(WGpuCommandEncoder commandEncoder, WGpuQuerySet querySet, int firstQuery, int queryCount, WGpuBuffer destination, /*double_int53_tL */ double destinationOffset);
         //
         // GPUCommandEncoder and GPURenderBundleEncoder share the same finish() command.
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuObjectBase wgpu_encoder_finish(WGpuObjectBase commandOrRenderBundleEncoder);
 
-        [DllImport("*", EntryPoint = "wgpu_encoder_finish")]
+        [DllImport(_DllPath, EntryPoint = "wgpu_encoder_finish")]
         public static extern WGpuObjectBase wgpu_command_encoder_finish(WGpuObjectBase commandOrRenderBundleEncoder);
 
         // #define wgpu_command_encoder_finish wgpu_encoder_finish
@@ -2303,22 +2305,22 @@ namespace WebGpu
         //         typedef WGpuObjectBase WGpuBindingCommandsMixin;
         // // Returns true if the given handle references a valid GPUBindingCommandsMixin. (one of: GPUComputePassEncoder, GPURenderPassEncoder, or GPURenderBundleEncoder)
         // /* EM_BOOL */ int wgpu_is_binding_commands_mixin(WGpuObjectBase object);
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_encoder_set_bind_group(WGpuBindingCommandsMixin encoder, int index, WGpuBindGroup bindGroup, int* dynamicOffsets /*_WGPU_DEFAULT_VALUE(0) */, int numDynamicOffsets /*_WGPU_DEFAULT_VALUE(0)*/);
         //
         // Some of the functions in GPURenderBundleEncoder, GPURenderPassEncoder and GPUComputePassEncoder are identical in implementation,
         // so group them under a common base class.
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_encoder_set_pipeline(WGpuBindingCommandsMixin encoder, WGpuObjectBase pipeline);
 
-        [DllImport("*", EntryPoint = "wgpu_encoder_set_pipeline")]
+        [DllImport(_DllPath, EntryPoint = "wgpu_encoder_set_pipeline")]
         public static extern void wgpu_render_pass_encoder_set_pipeline(WGpuBindingCommandsMixin encoder, WGpuObjectBase pipeline);
 
 
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_encoder_end(WGpuBindingCommandsMixin encoder);
 
-        [DllImport("*", EntryPoint = "wgpu_encoder_end")]
+        [DllImport(_DllPath, EntryPoint = "wgpu_encoder_end")]
         public static extern void wgpu_render_pass_encoder_end(WGpuBindingCommandsMixin encoder);
 
         //
@@ -2341,7 +2343,7 @@ namespace WebGpu
         // /* EM_BOOL */ int wgpu_is_compute_pass_encoder(WGpuObjectBase object);
         //
         // #define wgpu_compute_pass_encoder_set_pipeline wgpu_encoder_set_pipeline
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_compute_pass_encoder_dispatch_workgroups(WGpuComputePassEncoder encoder, uint workgroupCountX, uint workgroupCountY = 1 /*_WGPU_DEFAULT_VALUE(1) */, uint workgroupCountZ = 1/*_WGPU_DEFAULT_VALUE(1)*/);
         // void wgpu_compute_pass_encoder_dispatch_workgroups_indirect(WGpuComputePassEncoder encoder, WGpuBuffer indirectBuffer, /*double_int53_tL */ double indirectOffset);
         // #define wgpu_compute_pass_encoder_end wgpu_encoder_end
@@ -2422,17 +2424,17 @@ namespace WebGpu
         //
         // #define wgpu_render_commands_mixin_set_pipeline wgpu_encoder_set_pipeline
         //         void wgpu_render_commands_mixin_set_index_buffer(WGpuRenderCommandsMixin renderCommandsMixin, WGpuBuffer buffer, WGPU_INDEX_FORMAT indexFormat, /*double_int53_tL */ double offset _WGPU_DEFAULT_VALUE(0), /*double_int53_tL */ double size _WGPU_DEFAULT_VALUE(-1));
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_render_commands_mixin_set_vertex_buffer(WGpuRenderCommandsMixin renderCommandsMixin, int slot, WGpuBuffer buffer, /*double_int53_tL */ double offset  = 0/*_WGPU_DEFAULT_VALUE(0)*/, /*double_int53_tL */ double size = -1 /*_WGPU_DEFAULT_VALUE(-1)*/);
 
-        [DllImport("*", EntryPoint = "wgpu_render_commands_mixin_set_vertex_buffer")]
+        [DllImport(_DllPath, EntryPoint = "wgpu_render_commands_mixin_set_vertex_buffer")]
         public static extern void wgpu_render_pass_encoder_set_vertex_buffer(WGpuRenderCommandsMixin renderCommandsMixin, int slot, WGpuBuffer buffer, /*double_int53_tL */ double offset  = 0/*_WGPU_DEFAULT_VALUE(0)*/, /*double_int53_tL */ double size = -1 /*_WGPU_DEFAULT_VALUE(-1)*/);
 
         //
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_render_commands_mixin_draw(WGpuRenderCommandsMixin renderCommandsMixin, int vertexCount, int instanceCount = 1/* _WGPU_DEFAULT_VALUE(1)*/, int firstVertex = 0/*_WGPU_DEFAULT_VALUE(0) */, int firstInstance = 0 /*_WGPU_DEFAULT_VALUE(0) */);
 
-        [DllImport("*", EntryPoint = "wgpu_render_commands_mixin_draw")]
+        [DllImport(_DllPath, EntryPoint = "wgpu_render_commands_mixin_draw")]
         public static extern void wgpu_render_pass_encoder_draw(WGpuRenderCommandsMixin renderCommandsMixin, int vertexCount, int instanceCount = 1/* _WGPU_DEFAULT_VALUE(1)*/, int firstVertex = 0/*_WGPU_DEFAULT_VALUE(0) */, int firstInstance = 0 /*_WGPU_DEFAULT_VALUE(0) */);
 
         // void wgpu_render_commands_mixin_draw_indexed(WGpuRenderCommandsMixin renderCommandsMixin, int indexCount, int instanceCount _WGPU_DEFAULT_VALUE(1), int firstVertex _WGPU_DEFAULT_VALUE(0), int32_t baseVertex _WGPU_DEFAULT_VALUE(0), int firstInstance _WGPU_DEFAULT_VALUE(0));
@@ -2672,12 +2674,12 @@ namespace WebGpu
         // /* EM_BOOL */ int wgpu_is_queue(WGpuObjectBase object);
         //
         //         // Submits one command buffer to the given queue for rendering. The command buffer is held alive for later resubmission to another queue.
-        //[DllImport("*")]
+        //[DllImport(_DllPath)]
         //public static extern void wgpu_queue_submit_one(WGpuQueue queue, WGpuCommandBuffer commandBuffer);
         // Submits one command buffer to the given queue for rendering. The command buffer is destroyed after rendering by calling wgpu_object_destroy() on it.
         // (this is a helper function to help remind that wasm side references to WebGPU JS objects need to be destroyed or a reference leak occurs. See
         // function wgpu_get_num_live_objects() to help debug the number of live references)
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_queue_submit_one_and_destroy(WGpuQueue queue, WGpuCommandBuffer commandBuffer);
         //
         //         // Submits multiple command buffers to the given queue for rendering. The command buffers are held alive for later resubmission to another queue.
@@ -2692,10 +2694,10 @@ namespace WebGpu
         //
         //         // Uploads data to the given GPUBuffer. Data is copied from memory in byte addresses data[0], data[1], ... data[size-1], and uploaded
         //         // to the GPU buffer at byte offset bufferOffset, bufferOffset+1, ..., bufferOffset+size-1.
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_queue_write_buffer(WGpuQueue queue, WGpuBuffer buffer, /*double_int53_tL */ double bufferOffset, void* data /*NOTNULL*/, /*double_int53_tL */ double size);
         //         void wgpu_queue_write_texture(WGpuQueue queue, const WGpuImageCopyTexture* destination NOTNULL, const void* data NOTNULL, int bytesPerBlockRow, int blockRowsPerImage, int writeWidth, int writeHeight _WGPU_DEFAULT_VALUE(1), int writeDepthOrArrayLayers _WGPU_DEFAULT_VALUE(1));
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_queue_copy_external_image_to_texture(WGpuQueue queue, ref WGpuImageCopyExternalImage source /*NOTNULL*/, ref WGpuImageCopyTextureTagged destination /*NOTNULL*/, int copyWidth, int copyHeight /*_WGPU_DEFAULT_VALUE(1)*/, 
             int copyDepthOrArrayLayers /*_WGPU_DEFAULT_VALUE(1) */);
         //
@@ -2766,14 +2768,14 @@ namespace WebGpu
         //
         //         // Configures the swap chain for this context.
         // # ifdef __EMSCRIPTEN__
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern void wgpu_canvas_context_configure(WGpuCanvasContext canvasContext, ref WGpuCanvasConfiguration config /*NOTNULL */);
         // #else
         // void wgpu_canvas_context_configure(WGpuCanvasContext canvasContext, const WGpuCanvasConfiguration* config NOTNULL, int width _WGPU_DEFAULT_VALUE(0), int height _WGPU_DEFAULT_VALUE(0));
         // #endif
         // void wgpu_canvas_context_unconfigure(WGpuCanvasContext canvasContext);
         //
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuTexture wgpu_canvas_context_get_current_texture(WGpuCanvasContext canvasContext);
         //
         //         // Native Dawn implementation has a concept of a SwapChain. Web does not have this.
@@ -3008,7 +3010,7 @@ namespace WebGpu
             public int alphaMode;
         }
         // extern const WGpuCanvasConfiguration WGPU_CANVAS_CONFIGURATION_DEFAULT_INITIALIZER;
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuCanvasConfiguration GetWGPU_CANVAS_CONFIGURATION_DEFAULT_INITIALIZER();
 
         //
@@ -3070,7 +3072,7 @@ namespace WebGpu
             public WGpuColor clearValue; // Used if loadOp == WGPU_LOAD_OP_CLEAR. Default value = { r = 0.0, g = 0.0, b = 0.0, a = 1.0 }
         }
 
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuRenderPassColorAttachment GetWGPU_RENDER_PASS_COLOR_ATTACHMENT_DEFAULT_INITIALIZER();
         //
         [StructLayout(LayoutKind.Sequential)]
@@ -3154,7 +3156,7 @@ namespace WebGpu
             int writeMask;
         }
         // extern const WGpuColorTargetState WGPU_COLOR_TARGET_STATE_DEFAULT_INITIALIZER;
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuColorTargetState GetWGPU_COLOR_TARGET_STATE_DEFAULT_INITIALIZER();
         //
         [StructLayout(LayoutKind.Sequential)]
@@ -3168,7 +3170,7 @@ namespace WebGpu
             public WGpuPipelineLayout layout; // Set to special value WGPU_AUTO_LAYOUT_MODE_AUTO to specify that automatic layout should be used.
         }
         // extern const WGpuRenderPipelineDescriptor WGPU_RENDER_PIPELINE_DESCRIPTOR_DEFAULT_INITIALIZER;
-        [DllImport("*")]
+        [DllImport(_DllPath)]
         public static extern WGpuRenderPipelineDescriptor GetWGPU_RENDER_PIPELINE_DESCRIPTOR_DEFAULT_INITIALIZER();
         //
 
@@ -3208,7 +3210,7 @@ namespace WebGpu
         // Called when the ImageBitmap finishes loading. If loading fails, this callback will be called with width==height==0.
         // typedef void (* WGpuLoadImageBitmapCallback) (WGpuImageBitmap bitmap, int width, int height, void* userData);
         //
-        [DllImport("*", CallingConvention  = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport(_DllPath, CallingConvention  = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern void wgpu_load_image_bitmap_from_url_async(string url /*NOTNULL*/, /* EM_BOOL */ int flipY, delegate* unmanaged<WGpuImageBitmap, int, int, IntPtr, void> callback, IntPtr userData);
         //
         //

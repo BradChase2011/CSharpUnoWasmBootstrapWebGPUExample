@@ -35,6 +35,8 @@ public static class Program
     /*
     private static unsafe void StartCalls()
     {
+        int test = navigator_gpu_get_preferred_canvas_format();
+
         WGpuRequestAdapterOptions options = default;
         options.powerPreference = WGPU_POWER_PREFERENCE_LOW_POWER;
         navigator_gpu_request_adapter_async(ref options, &ObtainedWebGpuAdapter, IntPtr.Zero);

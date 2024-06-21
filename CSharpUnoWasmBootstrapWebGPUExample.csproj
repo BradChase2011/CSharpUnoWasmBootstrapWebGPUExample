@@ -9,7 +9,7 @@
 	<WasmShellILLinkerEnabled>false</WasmShellILLinkerEnabled>
 	<WasmShellIndexHtmlPath>./WasmPages/index.html</WasmShellIndexHtmlPath>
 	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-	<WasmShellEnableThreads>true</WasmShellEnableThreads>
+	<WasmShellEnableThreads>false</WasmShellEnableThreads>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,7 +34,7 @@
   
 	<ItemGroup>
 		<!-- <WasmShellAdditionalPInvokeLibrary Include="libc" /> -->
-		<!-- <WasmShellAdditionalPInvokeLibrary Include="__Native" /> -->
+		<WasmShellAdditionalPInvokeLibrary Include="__Native" />
 		<WasmShellExtraEmccFlags Include="-s USE_WEBGPU=1 -s NO_EXIT_RUNTIME=1 --js-library '$(ProjectDir)\lib\lib_webgpu.js'" />
 		<WasmShellNativeCompile Include=".\lib\lib_webgpu_cpp20.cpp" />
 	</ItemGroup>  
