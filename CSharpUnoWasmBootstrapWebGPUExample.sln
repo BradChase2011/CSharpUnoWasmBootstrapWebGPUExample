@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35017.193
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpUnoWasmBootstrapWebGPUExample", "CSharpUnoWasmBootstrapWebGPUExample.csproj", "{311E9311-ABC9-4EED-A6F6-6A8DF8BC126D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{311E9311-ABC9-4EED-A6F6-6A8DF8BC126D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{311E9311-ABC9-4EED-A6F6-6A8DF8BC126D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{311E9311-ABC9-4EED-A6F6-6A8DF8BC126D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{311E9311-ABC9-4EED-A6F6-6A8DF8BC126D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {79945FA2-A28A-4C5C-9320-4CC4A6E7E9D8}
+	EndGlobalSection
+EndGlobal

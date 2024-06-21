@@ -1,0 +1,25 @@
+{
+  "profiles": {
+    "CSharpUnoWasmBootstrapWebGPUExample": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:50193;http://localhost:50194",
+      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
+      "nativeDebugging": true,
+      "sqlDebugging": true
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "launchBrowser": true,
+      "launchUrl": "https://localhost:50193",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:50193;http://localhost:50194"
+      },
+      "distributionName": ""
+    }
+  }
+}
