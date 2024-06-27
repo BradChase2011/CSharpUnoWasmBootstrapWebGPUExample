@@ -1,9 +1,6 @@
 # CSharpUnoWasmBootstrapWebGPUExample
 A simple C#, WebGPU, Uno.Wasm.Bootstrap example that shows a triangle.
 
-*** CURRENTLY NOT WORKING, THIS IS A TESTING REPOSITORY AS OF YET ***
-*** THE EXAMPLE BREAKS ON BLITTABLE TYPES AND MULTITHREADING    ***
-
 This was created because I could not find a simple all inclusive example of running WebGPU in Uno.Wasm.Bootstrap utilizing C#.
 It currently only supports .NET 8.
 
