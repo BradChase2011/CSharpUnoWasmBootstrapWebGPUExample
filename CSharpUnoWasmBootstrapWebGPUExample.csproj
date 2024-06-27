@@ -19,8 +19,8 @@
 
   <ItemGroup>
     <!-- <PackageReference Include="Microsoft.Windows.Compatibility" Version="9.0.0-preview.5.24306.8" /> -->
-    <PackageReference Include="Uno.Wasm.Bootstrap" Version="9.0.0-dev.86" />
-    <PackageReference Include="Uno.Wasm.Bootstrap.DevServer" Version="9.0.0-dev.86" PrivateAssets="all" />
+    <PackageReference Include="Uno.Wasm.Bootstrap" Version="9.0.0-dev.90" />
+    <PackageReference Include="Uno.Wasm.Bootstrap.DevServer" Version="9.0.0-dev.90" PrivateAssets="all" />
 </ItemGroup>
 
   <ItemGroup>

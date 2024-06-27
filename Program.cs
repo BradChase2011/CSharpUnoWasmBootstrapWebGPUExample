@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using WebGpu;
 using static WebGpu.Interop;
 
@@ -13,45 +14,29 @@ public static class Program
 
     static void Main(string[] args)
     {
-        Console.WriteLine("Hello from C#!");
         StartCalls();
     }
-    /*
-    private static unsafe void StartCalls()
-    {
-        Console.WriteLine("!!!!!!!!!!!!! PRE CALL!!!!!!!!!!!!!!!!!!!");
-        int test = navigator_gpu_get_preferred_canvas_format();
-        Console.WriteLine("!!!!!!!!!!!!! POST CALL!!!!!!!!!!!!!!!!!!!:  " + test);
-    }
-    */
-    
-    private static unsafe void StartCalls()
-    {
-        Console.WriteLine("!!! PRE:  StartCalls");
-        int test = navigator_gpu_get_preferred_canvas_format();
 
+    private static unsafe void StartCalls()
+    {
         WGpuRequestAdapterOptions options = default;
         options.powerPreference = WGPU_POWER_PREFERENCE_LOW_POWER;
-        navigator_gpu_request_adapter_async(ref options, &ObtainedWebGpuAdapter, IntPtr.Zero);
-        Console.WriteLine("!!! POST:  StartCalls");
+        navigator_gpu_request_adapter_async(ref options, new WGpuRequestAdapterCallbackWrapper(){ cb = ObtainedWebGpuAdapter }, IntPtr.Zero);
     }
 
-    [UnmanagedCallersOnly]
+    [MonoPInvokeCallback(typeof(WGpuRequestAdapterCallback))]
     static unsafe void ObtainedWebGpuAdapter(IntPtr result, IntPtr userData)
     {
-        Console.WriteLine("!!! PRE:  ObtainedWebGpuAdapter");
         adapter = result;
 
         if (adapter == IntPtr.Zero)
             Console.WriteLine("ObtainedWebGpuAdapter was given a null GpuAdapter :-(");
 
         WGpuDeviceDescriptor deviceDesc = default;
-        //TODO deviceDesc In/Out or ref
-        wgpu_adapter_request_device_async(adapter, ref deviceDesc, &ObtainedWebGpuDevice, IntPtr.Zero);
-        Console.WriteLine("!!! POST:  ObtainedWebGpuAdapter");
+        wgpu_adapter_request_device_async(adapter, ref deviceDesc, new WGpuRequestDeviceCallbackWrapper() { cb = ObtainedWebGpuDevice }, IntPtr.Zero);
     }
 
-    [UnmanagedCallersOnly]
+    [MonoPInvokeCallback(typeof(WGpuRequestDeviceCallback))]
     static unsafe void ObtainedWebGpuDevice(IntPtr result, IntPtr userData)
     {
         if (result == IntPtr.Zero)
@@ -61,7 +46,9 @@ public static class Program
         queue = wgpu_device_get_queue(device);
         canvasContext = wgpu_canvas_get_webgpu_context("canvas");
 
-        WGpuCanvasConfiguration config = GetWGPU_CANVAS_CONFIGURATION_DEFAULT_INITIALIZER();
+        WGpuCanvasConfiguration config = new WGpuCanvasConfiguration();
+        GetWGPU_CANVAS_CONFIGURATION_DEFAULT_INITIALIZER(ref config);
+
         config.device = device;
         config.format = navigator_gpu_get_preferred_canvas_format();
         wgpu_canvas_context_configure(canvasContext, ref config);
@@ -90,31 +77,33 @@ public static class Program
 
         shaderModuleDesc.code = fragmentShader;
         IntPtr fs = wgpu_device_create_shader_module(device, ref shaderModuleDesc);
+        WGpuRenderPipelineDescriptor renderPipelineDesc = new WGpuRenderPipelineDescriptor();
+        GetWGPU_RENDER_PIPELINE_DESCRIPTOR_DEFAULT_INITIALIZER(ref renderPipelineDesc);
 
-        WGpuRenderPipelineDescriptor renderPipelineDesc = GetWGPU_RENDER_PIPELINE_DESCRIPTOR_DEFAULT_INITIALIZER();
         renderPipelineDesc.vertex.module = vs;
         renderPipelineDesc.vertex.entryPoint = "main";
         renderPipelineDesc.fragment.module = fs;
         renderPipelineDesc.fragment.entryPoint = "main";
 
-        WGpuColorTargetState colorTarget = GetWGPU_COLOR_TARGET_STATE_DEFAULT_INITIALIZER();
+        WGpuColorTargetState colorTarget = new WGpuColorTargetState();
+        GetWGPU_COLOR_TARGET_STATE_DEFAULT_INITIALIZER(ref colorTarget);
+
         colorTarget.format = config.format;
         renderPipelineDesc.fragment.numTargets = 1;
         renderPipelineDesc.fragment.targets = &colorTarget;
 
         renderPipeline = wgpu_device_create_render_pipeline(device, ref renderPipelineDesc);
 
-        emscripten_request_animation_frame_loop(&raf, IntPtr.Zero);
+        emscripten_request_animation_frame_loop(new EmscriptenAnimationLoopCallbackWrapper() { cb = raf }, IntPtr.Zero);
     }
 
-    [UnmanagedCallersOnly]
-    static unsafe int raf(double time, void* userData)
+    [MonoPInvokeCallback(typeof(WGpuRequestDeviceCallback))]
+    static unsafe int raf(double time, IntPtr userData)
     {
         IntPtr encoder = Interop.wgpu_device_create_command_encoder_simple(device);
-
-        WGpuRenderPassColorAttachment colorAttachment = GetWGPU_RENDER_PASS_COLOR_ATTACHMENT_DEFAULT_INITIALIZER();
+        WGpuRenderPassColorAttachment colorAttachment = new WGpuRenderPassColorAttachment();
+        GetWGPU_RENDER_PASS_COLOR_ATTACHMENT_DEFAULT_INITIALIZER(ref colorAttachment);
         colorAttachment.view = wgpu_texture_create_view(wgpu_canvas_context_get_current_texture(canvasContext), (WGpuTextureViewDescriptor*)IntPtr.Zero);
-
         WGpuRenderPassDescriptor passDesc = default;
         passDesc.numColorAttachments = 1;
         passDesc.colorAttachments = &colorAttachment;
@@ -128,7 +117,6 @@ public static class Program
 
         wgpu_queue_submit_one_and_destroy(queue, commandBuffer);
 
-        return 0; // Render just one frame, static content
-    }
-    
+        return 0;
+    } 
 }

@@ -1,6 +1,17 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
+[AttributeUsage(AttributeTargets.Method)]
+internal sealed class MonoPInvokeCallbackAttribute : Attribute
+{
+    public MonoPInvokeCallbackAttribute(Type type)
+    {
+        Type = type;
+    }
+
+    public Type Type { get; private set; }
+}
+
 namespace WebGpu
 {
     using WGpuAdapter = IntPtr;// WebGpu.WGpuObjectBase;
@@ -51,8 +62,16 @@ namespace WebGpu
         [DllImport(_DllPath)]
         internal static extern unsafe void emscripten_set_main_loop(delegate* unmanaged<void> f, int fps, int simulate_infinite_loop);
 
+
+        public unsafe struct EmscriptenAnimationLoopCallbackWrapper
+        {
+            public EmscriptenAnimationLoopCallback cb;
+        }
+
+        public delegate int EmscriptenAnimationLoopCallback(double time, IntPtr userData);
+
         [DllImport(_DllPath)]
-        internal static extern unsafe void emscripten_request_animation_frame_loop(delegate* unmanaged<double, void*, /* EM_BOOL */ int> f, IntPtr userDataPtr);
+        internal static extern unsafe void emscripten_request_animation_frame_loop(EmscriptenAnimationLoopCallbackWrapper callback, IntPtr userDataPtr);
 
         //
         // # ifdef __clang__
@@ -294,9 +313,9 @@ namespace WebGpu
         //         */
         public enum HTML_PREDEFINED_COLOR_SPACE
         {
-            // #define HTML_PREDEFINED_COLOR_SPACE_INVALID 0
-            // #define HTML_PREDEFINED_COLOR_SPACE_SRGB 1
-            // #define HTML_PREDEFINED_COLOR_SPACE_DISPLAY_P3 2
+            HTML_PREDEFINED_COLOR_SPACE_INVALID = 0,
+            HTML_PREDEFINED_COLOR_SPACE_SRGB = 1,
+            HTML_PREDEFINED_COLOR_SPACE_DISPLAY_P3 = 2
         }
 
         //         /*
@@ -337,16 +356,27 @@ namespace WebGpu
         // // The callback will also be resolved in the event of an initialization failure, but the ID handle
         // // passed to the callback will then be zero.
         // // options: may be null to request an adapter without specific options.
+
+        public unsafe struct WGpuRequestAdapterCallbackWrapper
+        {
+            public WGpuRequestAdapterCallback cb;
+        }
+
+        public delegate void WGpuRequestAdapterCallback(WGpuAdapter result, IntPtr userData);
+
         [DllImport(_DllPath)]
-        /* EM_BOOL */
-        public static extern int navigator_gpu_request_adapter_async(ref WGpuRequestAdapterOptions options, delegate* unmanaged<WGpuAdapter, IntPtr, void> adapterCallback, IntPtr userData);
+        public static extern int navigator_gpu_request_adapter_async(ref WGpuRequestAdapterOptions options, WGpuRequestAdapterCallbackWrapper adapterCallback, IntPtr userData);
+
+        [DllImport(_DllPath)]
+        public static extern int navigator_gpu_request_adapter_async_simple(WGpuRequestAdapterCallbackWrapper adapterCallback);
+
         //         // Requests a WebGPU adapter synchronously. Requires building with -sASYNCIFY=1 linker flag to work.
         //         // options: may be null to request an adapter without specific options.
         //         WGpuAdapter navigator_gpu_request_adapter_sync(const WGpuRequestAdapterOptions* options);
         //
         //         // Like above, but tiny code size without options.
-         //[DllImport(_DllPath)]
-         //public static extern void navigator_gpu_request_adapter_async_simple(WGpuRequestAdapterCallback adapterCallback);
+        //[DllImport(_DllPath)]
+        //public static extern void navigator_gpu_request_adapter_async_simple(WGpuRequestAdapterCallback adapterCallback);
         //         WGpuAdapter navigator_gpu_request_adapter_sync_simple(void);
         //
         [DllImport(_DllPath)]
@@ -417,8 +447,16 @@ namespace WebGpu
         //
         //         typedef void (* WGpuRequestDeviceCallback) (WGpuDevice device, void* userData);
         //
+
+        public unsafe struct WGpuRequestDeviceCallbackWrapper
+        {
+            public WGpuRequestDeviceCallback cb;
+        }
+
+        public delegate void WGpuRequestDeviceCallback(WGpuDevice result, IntPtr userData);
+
         [DllImport(_DllPath)]
-        public static extern void wgpu_adapter_request_device_async(WGpuAdapter adapter, ref WGpuDeviceDescriptor descriptor /*NOTNULL*/, delegate* unmanaged<WGpuDevice, IntPtr, void> deviceCallback, IntPtr userData);
+        public static extern void wgpu_adapter_request_device_async(WGpuAdapter adapter, ref WGpuDeviceDescriptor descriptor /*NOTNULL*/, WGpuRequestDeviceCallbackWrapper deviceCallback, IntPtr userData);
         //         // Requests a WebGPU device synchronously. Requires building with -sASYNCIFY=1 linker flag to work.
         //         WGpuDevice wgpu_adapter_request_device_sync(WGpuAdapter adapter, const WGpuDeviceDescriptor* descriptor NOTNULL);
         //
@@ -1212,6 +1250,14 @@ namespace WebGpu
         public enum WGPU_COMPARE_FUNCTION
         {
             WGPU_COMPARE_FUNCTION_LESS = 2,
+            WGPU_COMPARE_FUNCTION_INVALID = 0,
+            WGPU_COMPARE_FUNCTION_NEVER = 1,
+            WGPU_COMPARE_FUNCTION_EQUAL = 3,
+            WGPU_COMPARE_FUNCTION_LESS_EQUAL = 4,
+            WGPU_COMPARE_FUNCTION_GREATER = 5,
+            WGPU_COMPARE_FUNCTION_NOT_EQUAL = 6,
+            WGPU_COMPARE_FUNCTION_GREATER_EQUAL = 7,
+            WGPU_COMPARE_FUNCTION_ALWAYS = 8
         }
         // #define WGPU_COMPARE_FUNCTION_INVALID 0
         // #define WGPU_COMPARE_FUNCTION_NEVER 1
@@ -1737,6 +1783,14 @@ namespace WebGpu
             /* EM_BOOL */
             public int unclippedDepth; // defaults to EM_FALSE.
         }
+
+        public enum WGPU_FRONT_FACE : int
+        {
+            WGPU_FRONT_FACE_INVALID = 0,
+            WGPU_FRONT_FACE_CCW = 1,
+            WGPU_FRONT_FACE_CW = 2
+        }
+
         //         WGpuPrimitiveState;
         //
         // /*
@@ -1773,10 +1827,10 @@ namespace WebGpu
         [StructLayout(LayoutKind.Sequential)]
         public struct WGpuMultisampleState
         {
-            int count;
-            int mask;
+            public int count;
+            public uint mask;
             /* EM_BOOL */
-            int alphaToCoverageEnabled;
+            public int alphaToCoverageEnabled;
         }
         //
         // /*
@@ -1824,6 +1878,15 @@ namespace WebGpu
         //     const GPUFlagsConstant ALL   = 0xF;
         // };
         // */
+        public enum WGPU_COLOR_WRITE_FLAGS
+        {
+            WGPU_COLOR_WRITE_RED = 0x01,
+            WGPU_COLOR_WRITE_GREEN = 0x02,
+            WGPU_COLOR_WRITE_BLUE = 0x04,
+            WGPU_COLOR_WRITE_ALPHA = 0x08,
+            WGPU_COLOR_WRITE_ALL = 0x0F
+        }
+
         // typedef int WGPU_COLOR_WRITE_FLAGS;
         // #define WGPU_COLOR_WRITE_RED   0x01
         // #define WGPU_COLOR_WRITE_GREEN 0x02
@@ -1872,7 +1935,16 @@ namespace WebGpu
             WGPU_BLEND_FACTOR_ONE = 2,
             WGPU_BLEND_FACTOR_SRC_ALPHA = 5,
             WGPU_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA = 6,
-
+            WGPU_BLEND_FACTOR_INVALID = 0,
+            WGPU_BLEND_FACTOR_SRC = 3,
+            WGPU_BLEND_FACTOR_ONE_MINUS_SRC = 4,
+            WGPU_BLEND_FACTOR_DST = 7,
+            GPU_BLEND_FACTOR_ONE_MINUS_DST = 8,
+            WGPU_BLEND_FACTOR_DST_ALPHA = 9,
+            WGPU_BLEND_FACTOR_ONE_MINUS_DST_ALPHA = 10,
+            WGPU_BLEND_FACTOR_SRC_ALPHA_SATURATED = 11,
+            WGPU_BLEND_FACTOR_CONSTANT = 12,
+            WGPU_BLEND_FACTOR_ONE_MINUS_CONSTANT = 13,
         }
         // #define WGPU_BLEND_FACTOR_INVALID 0
         // #define WGPU_BLEND_FACTOR_ZERO 1
@@ -1899,7 +1971,13 @@ namespace WebGpu
         //         */
         public enum WGPU_BLEND_OPERATION
         {
-            WGPU_BLEND_OPERATION_ADD  = 1,
+            WGPU_BLEND_OPERATION_INVALID = 0,
+            WGPU_BLEND_OPERATION_DISABLED = 0, // Alias to 'WGPU_BLEND_OPERATION_INVALID'. Used to denote alpha blending being disabled in a more readable way.
+            WGPU_BLEND_OPERATION_ADD = 1,
+            WGPU_BLEND_OPERATION_SUBTRACT = 2,
+            WGPU_BLEND_OPERATION_REVERSE_SUBTRACT = 3,
+            WGPU_BLEND_OPERATION_MIN = 4,
+            WGPU_BLEND_OPERATION_MAX = 5
         }
         // #define WGPU_BLEND_OPERATION_INVALID 0
         // #define WGPU_BLEND_OPERATION_DISABLED 0 // Alias to 'WGPU_BLEND_OPERATION_INVALID'. Used to denote alpha blending being disabled in a more readable way.
@@ -1941,13 +2019,13 @@ namespace WebGpu
         public struct WGpuStencilFaceState
         {
             /* WGPU_COMPARE_FUNCTION */
-            int compare;
+            public int compare;
             /* WGPU_STENCIL_OPERATION */
-            int failOp;
+            public int failOp;
             /* WGPU_STENCIL_OPERATION */
-            int depthFailOp;
+            public int depthFailOp;
             /* WGPU_STENCIL_OPERATION */
-            int passOp;
+            public int passOp;
         }
         //
         // /*
@@ -1962,6 +2040,20 @@ namespace WebGpu
         //     "decrement-wrap"
         // };
         // */
+
+        public enum WGPU_STENCIL_OPERATION
+        {
+            WGPU_STENCIL_OPERATION_INVALID = 0,
+            WGPU_STENCIL_OPERATION_KEEP = 1,
+            WGPU_STENCIL_OPERATION_ZERO = 2,
+            WGPU_STENCIL_OPERATION_REPLACE = 3,
+            WGPU_STENCIL_OPERATION_INVERT = 4,
+            WGPU_STENCIL_OPERATION_INCREMENT_CLAMP = 5,
+            WGPU_STENCIL_OPERATION_DECREMENT_CLAMP = 6,
+            WGPU_STENCIL_OPERATION_INCREMENT_WRAP = 7,
+            WGPU_STENCIL_OPERATION_DECREMENT_WRAP = 8
+        }
+
         // typedef int WGPU_STENCIL_OPERATION;
         // #define WGPU_STENCIL_OPERATION_INVALID 0
         // #define WGPU_STENCIL_OPERATION_KEEP 1
@@ -3007,18 +3099,18 @@ namespace WebGpu
             /*WGPU_TEXTURE_FORMAT */
             public int format;
             /*WGPU_TEXTURE_USAGE_FLAGS */
-            int usage;
-            int numViewFormats;
+            public int usage;
+            public int numViewFormats;
             /* WGPU_TEXTURE_FORMAT* */
-            int* viewFormats;
+            public int* viewFormats;
             /* HTML_PREDEFINED_COLOR_SPACE */
-            int colorSpace;
+            public int colorSpace;
             /* WGPU_CANVAS_ALPHA_MODE */
             public int alphaMode;
         }
         // extern const WGpuCanvasConfiguration WGPU_CANVAS_CONFIGURATION_DEFAULT_INITIALIZER;
         [DllImport(_DllPath)]
-        public static extern WGpuCanvasConfiguration GetWGPU_CANVAS_CONFIGURATION_DEFAULT_INITIALIZER();
+        public static extern void GetWGPU_CANVAS_CONFIGURATION_DEFAULT_INITIALIZER(ref WGpuCanvasConfiguration source);
 
         //
         //         /*
@@ -3073,14 +3165,29 @@ namespace WebGpu
         public struct WGpuRenderPassColorAttachment
         {
             public WGpuTextureView view;
-            WGpuTextureView resolveTarget;
+            public WGpuTextureView resolveTarget;
             public WGPU_STORE_OP storeOp; // Required, be sure to set to WGPU_STORE_OP_STORE (default) or WGPU_STORE_OP_DISCARD
             public WGPU_LOAD_OP loadOp; // Either WGPU_LOAD_OP_LOAD (== default, 0) or WGPU_LOAD_OP_CLEAR.
             public WGpuColor clearValue; // Used if loadOp == WGPU_LOAD_OP_CLEAR. Default value = { r = 0.0, g = 0.0, b = 0.0, a = 1.0 }
         }
 
+        /*
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+        public struct WGpuRenderPassColorAttachment
+        {
+            public WGpuTextureView view;
+            public int depthSlice;
+            public WGpuTextureView resolveTarget;
+            public WGPU_STORE_OP storeOp; // Required, be sure to set to WGPU_STORE_OP_STORE (default) or WGPU_STORE_OP_DISCARD
+            public WGPU_LOAD_OP loadOp; // Either WGPU_LOAD_OP_LOAD (== default, 0) or WGPU_LOAD_OP_CLEAR.
+            public int dummyDoublePadding;
+            public WGpuColor clearValue; // Used if loadOp == WGPU_LOAD_OP_CLEAR. Default value = { r = 0.0, g = 0.0, b = 0.0, a = 1.0 }
+        }
+        */
+
         [DllImport(_DllPath)]
-        public static extern WGpuRenderPassColorAttachment GetWGPU_RENDER_PASS_COLOR_ATTACHMENT_DEFAULT_INITIALIZER();
+        public static extern void GetWGPU_RENDER_PASS_COLOR_ATTACHMENT_DEFAULT_INITIALIZER(ref WGpuRenderPassColorAttachment source );
+
         //
         [StructLayout(LayoutKind.Sequential)]
         public struct WGpuImageCopyExternalImage
@@ -3126,19 +3233,19 @@ namespace WebGpu
             public int depthWriteEnabled;
             public WGPU_COMPARE_FUNCTION depthCompare;
 
-            int stencilReadMask;
-            int stencilWriteMask;
+            public uint stencilReadMask;
+            public uint stencilWriteMask;
 
-            int depthBias;
-            float depthBiasSlopeScale;
-            float depthBiasClamp;
+            public int depthBias;
+            public float depthBiasSlopeScale;
+            public float depthBiasClamp;
 
-            WGpuStencilFaceState stencilFront;
-            WGpuStencilFaceState stencilBack;
+            public WGpuStencilFaceState stencilFront;
+            public WGpuStencilFaceState stencilBack;
 
             // Enable depth clamping (requires "depth-clamping" feature)
             /* EM_BOOL */
-            int clampDepth;
+            public int clampDepth;
         }
         //
         [StructLayout(LayoutKind.Sequential)]
@@ -3160,11 +3267,12 @@ namespace WebGpu
             public WGpuBlendState blend;
 
             /* WGPU_COLOR_WRITE_FLAGS */
-            int writeMask;
+            public int writeMask;
         }
         // extern const WGpuColorTargetState WGPU_COLOR_TARGET_STATE_DEFAULT_INITIALIZER;
+
         [DllImport(_DllPath)]
-        public static extern WGpuColorTargetState GetWGPU_COLOR_TARGET_STATE_DEFAULT_INITIALIZER();
+        public static extern void GetWGPU_COLOR_TARGET_STATE_DEFAULT_INITIALIZER(ref WGpuColorTargetState source);
         //
         [StructLayout(LayoutKind.Sequential)]
         public struct WGpuRenderPipelineDescriptor
@@ -3177,8 +3285,9 @@ namespace WebGpu
             public WGpuPipelineLayout layout; // Set to special value WGPU_AUTO_LAYOUT_MODE_AUTO to specify that automatic layout should be used.
         }
         // extern const WGpuRenderPipelineDescriptor WGPU_RENDER_PIPELINE_DESCRIPTOR_DEFAULT_INITIALIZER;
+
         [DllImport(_DllPath)]
-        public static extern WGpuRenderPipelineDescriptor GetWGPU_RENDER_PIPELINE_DESCRIPTOR_DEFAULT_INITIALIZER();
+        public static extern void GetWGPU_RENDER_PIPELINE_DESCRIPTOR_DEFAULT_INITIALIZER(ref WGpuRenderPipelineDescriptor source);
         //
 
         [StructLayout(LayoutKind.Explicit)]
